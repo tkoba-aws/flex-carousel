@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" backgroundAlpha="0.0"
+	backgroundColor='0xFFFFFF' creationComplete="init()" width="500" height="300" usePreloader="false">
+	<mx:Script>
+		<![CDATA[
+			import com.carousels.event.LoadProgressEvent;
+			import com.carousels.event.MouseRollOutEvent;
+			import com.carousels.event.MouseRollOverEvent;
+			import mx.core.UIComponent;
+			import mx.controls.Alert;
+			import mx.events.FlexMouseEvent;
+			import com.carousels.ViewerStage;
+
+			[Embed(source="assets/Button_NextOverSkin.gif")]
+			private var NextOverSkin:Class;
+			[Embed(source="assets/Button_NextUpSkin.gif")]
+			private var NextUpSkin:Class;
+			[Embed(source="assets/Button_BackOverSkin.gif")]
+			private var BackOverSkin:Class;
+			[Embed(source="assets/Button_BackUpSkin.gif")]
+			private var BackUpSkin:Class;
+
+			private var contentsUrl:String = "http://api.flickr.com/services/feeds/photos_public.gne?id=93058513@N00&lang=en-us&format=rss_200";
+			private var viewer:ViewerStage;
+			private var numPhotos:uint = 20;
+			private var pages:uint = 1;			
+
+			private function init():void{
+				viewer = new ViewerStage( contentsUrl, numPhotos , pages );
+				thisContainer.addChild( viewer );
+				viewer.addEventListener(LoadProgressEvent.LOAD_PROGRESS,loadProgressEventHandler);
+				viewer.addEventListener(Event.COMPLETE,loadingDoneEventHandler);
+				viewer.addEventListener(MouseRollOverEvent.MOUSE_ROLL_OVER,showScreenNHandler);
+				viewer.addEventListener(MouseRollOutEvent.MOUSE_ROLL_OUT,removeScreenNHandler);
+			}
+			
+			private function refleshStage( num:uint , page:uint ):void{
+				numPhotos = num; pages = page;
+				
+				left.enabled = false;
+				right.enabled = false;
+				//reflesh.enabled = false;
+				
+				if(viewer != null){
+					thisContainer.removeChild( viewer );
+					viewer = null;
+				}
+				
+				viewer = new ViewerStage( contentsUrl, numPhotos , pages );
+				thisContainer.addChild( viewer );
+				viewer.addEventListener(LoadProgressEvent.LOAD_PROGRESS,loadProgressEventHandler);
+				viewer.addEventListener(Event.COMPLETE,loadingDoneEventHandler);
+				viewer.addEventListener(MouseRollOverEvent.MOUSE_ROLL_OVER,showScreenNHandler);
+				viewer.addEventListener(MouseRollOutEvent.MOUSE_ROLL_OUT,removeScreenNHandler);
+			}
+			
+			private function showScreenNHandler(e:MouseRollOverEvent):void{
+				screennameText.text = String(e.data);
+			}
+			
+			private function removeScreenNHandler(e:MouseRollOutEvent):void{
+				screennameText.text = '';
+			}
+			
+			private function loadProgressEventHandler(e:LoadProgressEvent):void{
+				trace( "loading..."+e.data );
+				mainLoader.visible = true;
+				mainLoader.setProgress( uint(e.data) , 20 );
+			}
+			
+			private function loadingDoneEventHandler(e:Event):void{
+				mainLoader.visible = false;
+				left.enabled = true;
+				right.enabled = true;
+				//reflesh.enabled = true;
+				trace("ready");
+			}
+						
+			private function startRight(event:MouseEvent):void{
+				viewer.startRight();
+			}
+			
+			private function stopRight(event:MouseEvent):void{
+				viewer.stopRight();	
+			}
+			
+			private function startLeft(event:MouseEvent):void{
+				viewer.startLeft();
+			}
+			
+			private function stopLeft(event:MouseEvent):void{
+				viewer.stopLeft();
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:VBox width="100%" height="100%" verticalAlign="middle" horizontalAlign="center">
+		<mx:Text id="screennameText" height="5%" selectable="false" text="" />
+		<mx:VBox verticalAlign="middle" horizontalAlign="center" width="100%" height="80%" verticalGap="0" horizontalGap="0">
+			<mx:Canvas id="thisContainer" />
+		</mx:VBox>
+		<mx:ProgressBar id="mainLoader" height="5%" mode="manual" />
+		<mx:HBox height="10%">
+			<mx:Button id="left" enabled="false" height="13" width="13" upSkin="{BackUpSkin}" overSkin="{BackOverSkin}" downSkin="{BackUpSkin}" mouseDown="startLeft(event)" mouseUp="stopLeft(event)"/>	
+			<mx:Button id="right" enabled="false" height="13" width="13" upSkin="{NextUpSkin}" overSkin="{NextOverSkin}" downSkin="{NextUpSkin}" mouseDown="startRight(event)" mouseUp="stopRight(event)"/>
+			<!--mx:Button id="reflesh" label="*" enabled="false" toolTip="refresh" click="refleshStage(numPhotos,pages+1)"/-->
+		</mx:HBox>
+	</mx:VBox>
+</mx:Application>
